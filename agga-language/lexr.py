@@ -325,11 +325,12 @@ def run(fn, text):
 
 
 if __name__ == "__main__":
+
     while True:
-        text = input("Agga (Multi)> ")
-        fn = "<stdin>"
-        results, errors = run(fn, text)
-        if errors:
-            print(errors.as_string())
+        text = input('Agga (Multi)> ')
+        result, error = run('<stdin>', text)
+
+        if error:
+            print(error.as_string())
         else:
-            print(results)
+            print(result)

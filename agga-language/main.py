@@ -1,12 +1,17 @@
-from lexr import run
+from lib.Lexer import Lexer
 
-if __name__ == "__main__":
 
+def run(text):
+    lexer = Lexer(text)
+    tokens, errors = lexer.make_tokens()
+    return tokens, errors.as_string()
+
+
+if __name__ == '__main__':
     while True:
-        text = input('Agga (Multi)> ')
-        result, error = run('<stdin>', text)
-
-        if error:
-            print(error.as_string())
+        text = input('basic >')
+        tokens, errors = run(text)
+        if errors:
+            print(errors)
         else:
-            print(result)
+            print(tokens)
