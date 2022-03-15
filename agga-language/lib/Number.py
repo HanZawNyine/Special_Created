@@ -1,5 +1,7 @@
-from .Error import *
-
+from lib.Error import *
+#######################################
+# VALUES
+#######################################
 
 class Number:
     def __init__(self, value):
@@ -36,13 +38,13 @@ class Number:
                     'Division by zero',
                     self.context
                 )
+
             return Number(self.value / other.value).set_context(self.context), None
 
     def powed_by(self, other):
         if isinstance(other, Number):
             return Number(self.value ** other.value).set_context(self.context), None
 
-    #comparison
     def get_comparison_eq(self, other):
         if isinstance(other, Number):
             return Number(int(self.value == other.value)).set_context(self.context), None
@@ -70,13 +72,13 @@ class Number:
     def anded_by(self, other):
         if isinstance(other, Number):
             return Number(int(self.value and other.value)).set_context(self.context), None
+
     def ored_by(self, other):
         if isinstance(other, Number):
             return Number(int(self.value or other.value)).set_context(self.context), None
 
-    def notted(self, other):
-        if isinstance(other, Number):
-            return Number(1 if self.value==0 else 0).set_context(self.context), None
+    def notted(self):
+        return Number(1 if self.value == 0 else 0).set_context(self.context), None
 
     def copy(self):
         copy = Number(self.value)

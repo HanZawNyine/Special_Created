@@ -1,8 +1,14 @@
-from .Types import *
-from .Error import *
-from .Context import *
-from .Number import *
+#######################################
+# IMPORTS
+#######################################
+from lib.Number import  *
+from lib.Error import *
+from lib.Types import *
 
+
+#######################################
+# RUNTIME RESULT
+#######################################
 
 class RTResult:
     def __init__(self):
@@ -22,6 +28,10 @@ class RTResult:
         return self
 
 
+#######################################
+# INTERPRETER
+#######################################
+
 class Interpreter:
     def visit(self, node, context):
         method_name = f'visit_{type(node).__name__}'
@@ -29,7 +39,9 @@ class Interpreter:
         return method(node, context)
 
     def no_visit_method(self, node, context):
-        raise Exception(f'No Visit_{type(node).__name__} method defined')
+        raise Exception(f'No visit_{type(node).__name__} method defined')
+
+    ###################################
 
     def visit_NumberNode(self, node, context):
         return RTResult().success(
@@ -47,6 +59,8 @@ class Interpreter:
                 f"'{var_name}' is not defined",
                 context
             ))
+
+        value = value.copy().set_pos(node.pos_start, node.pos_end)
         return res.success(value)
 
     def visit_VarAssignNode(self, node, context):
@@ -54,6 +68,7 @@ class Interpreter:
         var_name = node.var_name_tok.value
         value = res.register(self.visit(node.value_node, context))
         if res.error: return res
+
         context.symbol_table.set(var_name, value)
         return res.success(value)
 
@@ -64,7 +79,6 @@ class Interpreter:
         right = res.register(self.visit(node.right_node, context))
         if res.error: return res
 
-        # error,result = None,None
         if node.op_tok.type == TT_PLUS:
             result, error = left.added_to(right)
         elif node.op_tok.type == TT_MINUS:
@@ -110,7 +124,7 @@ class Interpreter:
             number, error = number.notted()
 
         if error:
-            res.failure(error)
+            return res.failure(error)
         else:
             return res.success(number.set_pos(node.pos_start, node.pos_end))
 
@@ -125,9 +139,55 @@ class Interpreter:
                 expr_value = res.register(self.visit(expr, context))
                 if res.error: return res
                 return res.success(expr_value)
+
         if node.else_case:
             else_value = res.register(self.visit(node.else_case, context))
             if res.error: return res
             return res.success(else_value)
+
+        return res.success(None)
+
+    def visit_ForNode(self, node, context):
+        res = RTResult()
+
+        start_value = res.register(self.visit(node.start_value_node, context))
+        if res.error: return res
+
+        end_value = res.register(self.visit(node.end_value_node, context))
+        if res.error: return res
+
+        if node.step_value_node:
+            step_value = res.register(self.visit(node.step_value_node, context))
+            if res.error: return res
+        else:
+            step_value = Number(1)
+
+        i = start_value.value
+
+        if step_value.value >= 0:
+            condition = lambda: i < end_value.value
+        else:
+            condition = lambda: i > end_value.value
+
+        while condition():
+            context.symbol_table.set(node.var_name_tok.value, Number(i))
+            i += step_value.value
+
+            res.register(self.visit(node.body_node, context))
+            if res.error: return res
+
+        return res.success(None)
+
+    def visit_WhileNode(self, node, context):
+        res = RTResult()
+
+        while True:
+            condition = res.register(self.visit(node.condition_node, context))
+            if res.error: return res
+
+            if not condition.is_true(): break
+
+            res.register(self.visit(node.body_node, context))
+            if res.error: return res
 
         return res.success(None)

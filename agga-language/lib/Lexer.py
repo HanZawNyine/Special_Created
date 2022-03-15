@@ -1,7 +1,9 @@
-from .Token import *
-from .Types import *
-from .Error import *
-
+from lib.Token import *
+from lib.Error import *
+from lib.Types import *
+#######################################
+# LEXER
+#######################################
 
 class Lexer:
     def __init__(self, fn, text):
@@ -17,6 +19,7 @@ class Lexer:
 
     def make_tokens(self):
         tokens = []
+
         while self.current_char != None:
             if self.current_char in ' \t':
                 self.advance()
@@ -24,47 +27,73 @@ class Lexer:
                 tokens.append(self.make_number())
             elif self.current_char in LETTERS:
                 tokens.append(self.make_identifier())
-            elif self.current_char == "+":
+            elif self.current_char == '+':
                 tokens.append(Token(TT_PLUS, pos_start=self.pos))
                 self.advance()
-            elif self.current_char == "-":
+            elif self.current_char == '-':
                 tokens.append(Token(TT_MINUS, pos_start=self.pos))
                 self.advance()
-            elif self.current_char == "*":
+            elif self.current_char == '*':
                 tokens.append(Token(TT_MUL, pos_start=self.pos))
                 self.advance()
-            elif self.current_char == "/":
+            elif self.current_char == '/':
                 tokens.append(Token(TT_DIV, pos_start=self.pos))
                 self.advance()
-            elif self.current_char == "^":
+            elif self.current_char == '^':
                 tokens.append(Token(TT_POW, pos_start=self.pos))
                 self.advance()
-            elif self.current_char == "(":
+            elif self.current_char == '(':
                 tokens.append(Token(TT_LPAREN, pos_start=self.pos))
                 self.advance()
-            elif self.current_char == ")":
+            elif self.current_char == ')':
                 tokens.append(Token(TT_RPAREN, pos_start=self.pos))
                 self.advance()
-
             elif self.current_char == '!':
-                tok,error = self.make_not_equals()
-                if error:return [],error
-                tokens.append(tok)
-            elif self.current_char == "=":
+                token, error = self.make_not_equals()
+                if error: return [], error
+                tokens.append(token)
+            elif self.current_char == '=':
                 tokens.append(self.make_equals())
-            elif self.current_char == "<":
+            elif self.current_char == '<':
                 tokens.append(self.make_less_than())
-            elif self.current_char == ">":
+            elif self.current_char == '>':
                 tokens.append(self.make_greater_than())
-                self.advance()
-
             else:
                 pos_start = self.pos.copy()
                 char = self.current_char
                 self.advance()
-                return [], IllegalCharacter(pos_start, self.pos, "'" + char + "'")
-        tokens.append(Token(TT_EOF,pos_start=self.pos))
+                return [], IllegalCharError(pos_start, self.pos, "'" + char + "'")
+
+        tokens.append(Token(TT_EOF, pos_start=self.pos))
         return tokens, None
+
+    def make_number(self):
+        num_str = ''
+        dot_count = 0
+        pos_start = self.pos.copy()
+
+        while self.current_char != None and self.current_char in DIGITS + '.':
+            if self.current_char == '.':
+                if dot_count == 1: break
+                dot_count += 1
+            num_str += self.current_char
+            self.advance()
+
+        if dot_count == 0:
+            return Token(TT_INT, int(num_str), pos_start, self.pos)
+        else:
+            return Token(TT_FLOAT, float(num_str), pos_start, self.pos)
+
+    def make_identifier(self):
+        id_str = ''
+        pos_start = self.pos.copy()
+
+        while self.current_char != None and self.current_char in LETTERS_DIGITS + '_':
+            id_str += self.current_char
+            self.advance()
+
+        tok_type = TT_KEYWORD if id_str in KEYWORDS else TT_IDENTIFIER
+        return Token(tok_type, id_str, pos_start, self.pos)
 
     def make_not_equals(self):
         pos_start = self.pos.copy()
@@ -72,9 +101,10 @@ class Lexer:
 
         if self.current_char == '=':
             self.advance()
-            return Token(TT_NE,pos_start=pos_start,pos_end=self.pos),None
+            return Token(TT_NE, pos_start=pos_start, pos_end=self.pos), None
+
         self.advance()
-        return None,ExceptedCharError(pos_start,self.pos,"'=' (after '!')")
+        return None, ExpectedCharError(pos_start, self.pos, "'=' (after '!')")
 
     def make_equals(self):
         tok_type = TT_EQ
@@ -85,7 +115,7 @@ class Lexer:
             self.advance()
             tok_type = TT_EE
 
-        return Token(tok_type,pos_start=pos_start,pos_end=self.pos)
+        return Token(tok_type, pos_start=pos_start, pos_end=self.pos)
 
     def make_less_than(self):
         tok_type = TT_LT
@@ -108,31 +138,3 @@ class Lexer:
             tok_type = TT_GTE
 
         return Token(tok_type, pos_start=pos_start, pos_end=self.pos)
-
-    def make_number(self):
-        num_str = ''
-        dot_count = 0
-        pos_start = self.pos.copy()
-
-        while self.current_char != None and self.current_char in DIGITS + ".":
-            if self.current_char == ".":
-                if dot_count == 1: break
-                dot_count += 1
-                num_str += '.'
-            else:
-                num_str += self.current_char
-            self.advance()
-        if dot_count == 0:
-            return Token(TT_INT, int(num_str), pos_start, self.pos)
-        else:
-            return Token(TT_FLOAT, float(num_str), pos_start, self.pos)
-
-    def make_identifier(self):
-        id_str = ''
-        pos_start = self.pos.copy()
-        while self.current_char != None and self.current_char in LETTERS_DIGITS+ '_':
-            id_str += self.current_char
-            self.advance()
-
-        tok_type = TT_KEYWORD if id_str in KEYWORDS else TT_IDENTIFIER
-        return Token(tok_type,id_str,pos_start,self.pos)
