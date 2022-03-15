@@ -45,6 +45,10 @@ class InvalidSyntaxError(Error):
     def __init__(self, pos_start, pos_end, details):
         super().__init__(pos_start, pos_end, "Invalid Syntax", details)
 
+class ExceptedCharError(Error):
+    def __init__(self,pos_start,pos_end,details):
+        super().__init__(pos_start,pos_end,"Excepted Character Error",details)
+
 
 class RTError(Error):
     def __init__(self, pos_start, pos_end, details, context):
