@@ -3,6 +3,7 @@ from .Error import *
 from .Context import *
 from .Number import *
 
+
 class RTResult:
     def __init__(self):
         self.value = None
@@ -19,6 +20,7 @@ class RTResult:
     def failure(self, error):
         self.error = error
         return self
+
 
 class Interpreter:
     def visit(self, node, context):
@@ -47,12 +49,12 @@ class Interpreter:
             ))
         return res.success(value)
 
-    def visit_VarAssignNode(self,node,context):
+    def visit_VarAssignNode(self, node, context):
         res = RTResult()
         var_name = node.var_name_tok.value
-        value = res.register(self.visit(node.value_node,context))
+        value = res.register(self.visit(node.value_node, context))
         if res.error: return res
-        context.symbol_table.set(var_name,value)
+        context.symbol_table.set(var_name, value)
         return res.success(value)
 
     def visit_BinOpNode(self, node, context):
@@ -74,21 +76,21 @@ class Interpreter:
         elif node.op_tok.type == TT_POW:
             result, error = left.powed_by(right)
         elif node.op_tok.type == TT_EE:
-            result,error = left.get_comparison_eq(right)
+            result, error = left.get_comparison_eq(right)
         elif node.op_tok.type == TT_NE:
-            result,error = left.get_comparison_ne(right)
+            result, error = left.get_comparison_ne(right)
         elif node.op_tok.type == TT_LT:
-            result,error = left.get_comparison_lt(right)
+            result, error = left.get_comparison_lt(right)
         elif node.op_tok.type == TT_GT:
-            result,error = left.get_comparison_gt(right)
+            result, error = left.get_comparison_gt(right)
         elif node.op_tok.type == TT_LTE:
-            result,error = left.get_comparison_lte(right)
+            result, error = left.get_comparison_lte(right)
         elif node.op_tok.type == TT_GTE:
-            result,error = left.get_comparison_gte(right)
-        elif node.op_tok.matches(TT_KEYWORD,'AND'):
-            result,error =left.anded_by(right)
-        elif node.op_tok.matches(TT_KEYWORD,'OR'):
-            result,error =left.ored_by(right)
+            result, error = left.get_comparison_gte(right)
+        elif node.op_tok.matches(TT_KEYWORD, 'AND'):
+            result, error = left.anded_by(right)
+        elif node.op_tok.matches(TT_KEYWORD, 'OR'):
+            result, error = left.ored_by(right)
 
         if error:
             return res.failure(error)
@@ -104,10 +106,28 @@ class Interpreter:
 
         if node.op_tok.type == TT_MINUS:
             number, error = number.multed_by(Number(-1))
-        elif node.op_tok.matches(TT_KEYWORD,'NOT'):
-            number,error = number.notted()
+        elif node.op_tok.matches(TT_KEYWORD, 'NOT'):
+            number, error = number.notted()
 
         if error:
             res.failure(error)
         else:
             return res.success(number.set_pos(node.pos_start, node.pos_end))
+
+    def visit_IfNode(self, node, context):
+        res = RTResult()
+
+        for condition, expr in node.cases:
+            condition_value = res.register(self.visit(condition, context))
+            if res.error: return res
+
+            if condition_value.is_true():
+                expr_value = res.register(self.visit(expr, context))
+                if res.error: return res
+                return res.success(expr_value)
+        if node.else_case:
+            else_value = res.register(self.visit(node.else_case, context))
+            if res.error: return res
+            return res.success(else_value)
+
+        return res.success(None)

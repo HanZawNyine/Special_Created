@@ -30,5 +30,6 @@ TT_GTE = 'GTE'
 
 KEYWORDS = [
     'VAR',
-    'AND', 'OR', 'NOT'
+    'AND', 'OR', 'NOT',
+    'IF','THEN', 'ELIF','ELSE',
 ]

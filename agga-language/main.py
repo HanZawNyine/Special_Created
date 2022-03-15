@@ -33,8 +33,6 @@ def run(fn, text):
 if __name__ == "__main__":
     while True:
         text = input("Agga> ")
-        tokens, errors = run("<stdin>", text)
-        if errors:
-            print(errors.as_string())
-        else:
-            print(tokens)
+        results, errors = run("<stdin>", text)
+        if errors: print(errors.as_string())
+        elif results: print(results)
