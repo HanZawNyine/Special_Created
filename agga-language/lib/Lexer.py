@@ -2,11 +2,12 @@ from .Token import *
 from .Types import *
 from .Error import *
 
+
 class Lexer:
-    def __init__(self,fn, text):
+    def __init__(self, fn, text):
         self.fn = fn
         self.text = text
-        self.pos = Position(-1,0,-1,fn,text)
+        self.pos = Position(-1, 0, -1, fn, text)
         self.current_char = None
         self.advance()
 
@@ -17,32 +18,40 @@ class Lexer:
     def make_tokens(self):
         tokens = []
         while self.current_char != None:
-            if self.current_char in '\t':
+            if self.current_char in ' \t':
                 self.advance()
             elif self.current_char in DIGITS:
                 tokens.append(self.make_number())
             elif self.current_char == "+":
-                tokens.append(Token(TT_PLUS))
+                tokens.append(Token(TT_PLUS, pos_start=self.pos))
                 self.advance()
             elif self.current_char == "-":
-                tokens.append(Token(TT_MINUS))
+                tokens.append(Token(TT_MINUS, pos_start=self.pos))
                 self.advance()
             elif self.current_char == "*":
-                tokens.append(Token(TT_MUL))
+                tokens.append(Token(TT_MUL, pos_start=self.pos))
                 self.advance()
             elif self.current_char == "/":
-                tokens.append(Token(TT_DIV))
+                tokens.append(Token(TT_DIV, pos_start=self.pos))
+                self.advance()
+            elif self.current_char == "(":
+                tokens.append(Token(TT_LPAREN, pos_start=self.pos))
+                self.advance()
+            elif self.current_char == ")":
+                tokens.append(Token(TT_RPAREN, pos_start=self.pos))
                 self.advance()
             else:
-                pos_start=self.pos.copy()
+                pos_start = self.pos.copy()
                 char = self.current_char
-                # self.advance()
-                return [],IllegalCharacter(pos_start,self.pos,"'"+char+"'")
-        return tokens,None
+                self.advance()
+                return [], IllegalCharacter(pos_start, self.pos, "'" + char + "'")
+        tokens.append(Token(TT_EOF,pos_start=self.pos))
+        return tokens, None
 
     def make_number(self):
         num_str = ''
         dot_count = 0
+        pos_start = self.pos.copy()
 
         while self.current_char != None and self.current_char in DIGITS + ".":
             if self.current_char == ".":
@@ -50,9 +59,9 @@ class Lexer:
                 dot_count += 1
                 num_str += '.'
             else:
-                num_str+= self.current_char
+                num_str += self.current_char
             self.advance()
-        if dot_count==0:
-            return Token(TT_INT,int(num_str))
+        if dot_count == 0:
+            return Token(TT_INT, int(num_str), pos_start, self.pos)
         else:
-            return Token(TT_FLOAT,float(num_str))
+            return Token(TT_FLOAT, float(num_str), pos_start, self.pos)
