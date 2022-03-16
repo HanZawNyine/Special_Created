@@ -1,5 +1,4 @@
 import string
-
 #######################################
 # CONSTANTS
 #######################################
@@ -9,13 +8,9 @@ LETTERS = string.ascii_letters
 LETTERS_DIGITS = LETTERS + DIGITS
 
 
-
-#######################################
-# TOKENS
-#######################################
-
 TT_INT = 'INT'
 TT_FLOAT = 'FLOAT'
+TT_STRING = 'STRING'
 TT_IDENTIFIER = 'IDENTIFIER'
 TT_KEYWORD = 'KEYWORD'
 TT_PLUS = 'PLUS'
@@ -32,6 +27,8 @@ TT_LT = 'LT'
 TT_GT = 'GT'
 TT_LTE = 'LTE'
 TT_GTE = 'GTE'
+TT_COMMA = 'COMMA'
+TT_ARROW = 'ARROW'
 TT_EOF = 'EOF'
 
 KEYWORDS = [
@@ -46,5 +43,6 @@ KEYWORDS = [
     'TO',
     'STEP',
     'WHILE',
+    'FUN',
     'THEN'
 ]

@@ -1,38 +1,41 @@
-from lib.Lexer import *
-from lib.Parser import *
-from lib.Interpreter import *
-from lib.Context import *
-from lib.SymbolTable import *
+from lib.Intepreter import *
 
-global_Symbol_table = SymbolTable()
-global_Symbol_table.set("NULL",Number(0))
-global_Symbol_table.set("TRUE",Number(1))
-global_Symbol_table.set("FALSE",Number(0))
+#######################################
+# RUN
+#######################################
+
+global_symbol_table = SymbolTable()
+global_symbol_table.set("NULL", Number(0))
+global_symbol_table.set("FALSE", Number(0))
+global_symbol_table.set("TRUE", Number(1))
+
 
 def run(fn, text):
+    # Generate tokens
     lexer = Lexer(fn, text)
-    tokens, errors = lexer.make_tokens()
-    if errors: return None, errors
+    tokens, error = lexer.make_tokens()
+    if error: return None, error
 
-    # AST Abstract syntax tree
-    praser = Parser(tokens)
-    ast = praser.parse()
-
+    # Generate AST
+    parser = Parser(tokens)
+    ast = parser.parse()
     if ast.error: return None, ast.error
-    # print(ast.node)
 
-    # interpreter
+    # Run program
     interpreter = Interpreter()
-
     context = Context('<program>')
-    context.symbol_table = global_Symbol_table
-    result = interpreter.visit(ast.node,context)
+    context.symbol_table = global_symbol_table
+    result = interpreter.visit(ast.node, context)
+
     return result.value, result.error
 
 
 if __name__ == "__main__":
     while True:
-        text = input("Agga> ")
-        results, errors = run("<stdin>", text)
-        if errors: print(errors.as_string())
-        elif results: print(results)
+        text = input('Agga-Capitalize > ')
+        result, error = run('<stdin>', text)
+
+        if error:
+            print(error.as_string())
+        elif result:
+            print(result)
