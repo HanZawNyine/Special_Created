@@ -1,4 +1,4 @@
-import pandas as pd
+# import pandas as pd
 from PIL import Image, ImageDraw, ImageFont
 
 
@@ -7,6 +7,7 @@ class Template:
         self.template = Image.open(template_path)
 
     def write_text(self, location: tuple, text, font_style=None, size=12, font_color="black"):
+        font = ImageFont.load_default()
         draw = ImageDraw.Draw(self.template)
         font=None
         if font_style:
@@ -23,8 +24,8 @@ class Template:
 
 
 if __name__ == '__main__':
-    source_image_path = "photos\\1.jpg"
-    template = Template("photos/template.png")
+    source_image_path = "photos\\8.jpg"
+    template = Template("photos\\template.png")
     template.add_image(image=source_image_path, prepare_size=(165, 190), paste_image_location=(25, 75, 190, 265))
     template.write_text(location=(315, 84), text="1111111111111",font_style="OpenSans-Semibold.ttf",size=20,font_color="blue")
     template.write_text(location=(315, 130), text="1111111111111",font_style="OpenSans-Semibold.ttf",size=20,font_color="blue")
